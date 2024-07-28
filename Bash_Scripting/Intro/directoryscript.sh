@@ -2,6 +2,8 @@
 
 directory=/etc
 
+
+#Be sure to test for failures!
 if [ -d $directory ]
 then
 	echo $? 
