@@ -11,16 +11,9 @@ then
 fi
 
 #To make the script work on both Debian or Ubuntu (redundant)
-if grep -q "Debian" $release_file
+if grep -q "Debian" $release_file || grep -q "Ubuntu" $release_file
 then
 	sudo apt update
 	sudo apt dis-upgrade
 fi
 
-if grep -q "Ubuntu" $release_file
-then
-	#Host based on Debian or Ubuntu,
-	#Run apt version of command
-	sudo apt update
-	sudo apt dist-upgrade
-fi
