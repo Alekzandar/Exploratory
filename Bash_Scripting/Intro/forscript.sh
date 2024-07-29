@@ -1,6 +1,12 @@
 #!/bin/bash
 
-for current_number in 1 2 3 4 5 6 7 
+
+for file in logfiles/*.log
+do
+	tar -czvf $file.tar.gz $file
+done
+
+for current_number in {1..10}
 do
 	echo $current_number
 	sleep 1
