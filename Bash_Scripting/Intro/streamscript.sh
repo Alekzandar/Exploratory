@@ -6,4 +6,9 @@
 
 #find /etc -type f 1>find_output.txt 2>find_errors.txt
 
-sudo 
+#Standard Input, Accepting input from a user
+
+echo "Please enter name:"
+read myname
+echo "Your name is: $myname."
+ 
