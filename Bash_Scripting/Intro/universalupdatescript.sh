@@ -23,7 +23,7 @@ then
 	then
 		echo "An error occured, please check the $errorlog file."
 	fi
-	sudo apt dis-upgrade 1>>$logfile 2>>$errorlog
+	sudo apt dis-upgrade -y 1>>$logfile 2>>$errorlog
 	if [ $? -ne 0 ]
 	then
 		echo "An error occured, please the $errorlog file."
