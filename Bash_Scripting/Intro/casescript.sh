@@ -21,7 +21,10 @@ do
 		3) echo "Mint is popular on desk and lapts.";;
 		4) echo "Ubuntu is popular on both servs and comps.";;
 		5) echo "There are many huh...";;
-		6) finished=1;;
+		6) finished=1 ;;
 		*) echo "Not an option!"
 	esac
 done	
+
+echo "Case closed!"
+
