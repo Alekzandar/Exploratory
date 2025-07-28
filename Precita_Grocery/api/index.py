@@ -69,6 +69,10 @@ def delete_item(item_id):
     db.session.commit()
     return jsonify({"message": "Item deleted successfully"}), 200
 
+@app.route('/env')
+def show_env():
+    return jsonify({"DATABASE_URL": os.environ.get('DATABASE_URL') or "NOT SET"})
+
 # This allows the file to be run directly for local development.
 # Vercel will use a WSGI server and won't run this part.
 if __name__ == '__main__':
