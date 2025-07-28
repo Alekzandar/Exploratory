@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto max-w-lg mt-10 p-5">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+                <i class="fas fa-shopping-cart mr-2 text-blue-500"></i>Grocery List
+            </h1>
+
+            <!-- Add Item Form -->
+            <form id="add-item-form" class="flex mb-6">
+                <input type="text" id="item-input" class="flex-grow p-3 rounded-l-lg border-2 border-gray-200 focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g., Eggs" required>
+                <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-r-lg hover:bg-blue-600 transition-colors font-semibold">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </form>
+
+            <!-- Grocery List -->
+            <ul id="grocery-list" class="space-y-3">
+                <!-- Items will be dynamically inserted here -->
+            </ul>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="text-center mt-5 hidden">
+                <i class="fas fa-spinner fa-spin text-2xl text-gray-500"></i>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="text-center mt-4 text-red-500 font-medium hidden"></div>
+        </div>
+        <p class="text-center text-gray-500 text-xs mt-4">
+            &copy;2024 Grocery List App. A simple and effective way to manage your shopping.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('add-item-form');
+            const input = document.getElementById('item-input');
+            const list = document.getElementById('grocery-list');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+
+            const API_URL = '/api'; // This will be proxied to our Flask backend by Vercel
+
+            // --- API Functions ---
+            const showLoading = () => loading.classList.remove('hidden');
+            const hideLoading = () => loading.classList.add('hidden');
+            const showError = (message) => {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+            };
+            const hideError = () => errorMessage.classList.add('hidden');
+
+            /**
+             * Fetches all grocery items from the backend.
+             */
+            async function getItems() {
+                showLoading();
+                hideError();
+                try {
+                    const response = await fetch(`${API_URL}/items`);
+                    if (!response.ok) {
+                        throw new Error('Could not fetch items. The server might be down.');
+                    }
+                    const items = await response.json();
+                    renderItems(items);
+                } catch (error) {
+                    showError(error.message);
+                    console.error("Fetch error:", error);
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            /**
+             * Adds a new grocery item.
+             * @param {string} itemName - The name of the item to add.
+             */
+            async function addItem(itemName) {
+                hideError();
+                try {
+                    const response = await fetch(`${API_URL}/items`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: itemName })
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to add the item.');
+                    }
+                    await getItems(); // Refresh the list
+                } catch (error) {
+                    showError(error.message);
+                    console.error("Add item error:", error);
+                }
+            }
+
+            /**
+             * Deletes a grocery item by its ID.
+             * @param {string} id - The ID of the item to delete.
+             */
+            async function deleteItem(id) {
+                hideError();
+                try {
+                    const response = await fetch(`${API_URL}/items/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to delete the item.');
+                    }
+                    await getItems(); // Refresh the list
+                } catch (error) {
+                    showError(error.message);
+                    console.error("Delete item error:", error);
+                }
+            }
+
+            // --- Rendering Logic ---
+
+            /**
+             * Renders the list of grocery items in the UI.
+             * @param {Array<Object>} items - The array of item objects.
+             */
+            function renderItems(items) {
+                list.innerHTML = ''; // Clear the current list
+                if (items.length === 0) {
+                    list.innerHTML = `<li class="text-center text-gray-500 p-4">Your grocery list is empty!</li>`;
+                    return;
+                }
+                items.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg shadow-sm animate-fade-in';
+                    listItem.innerHTML = `
+                        <span class="text-gray-800">${item.name}</span>
+                        <button data-id="${item.id}" class="delete-btn text-red-500 hover:text-red-700 transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    `;
+                    list.appendChild(listItem);
+                });
+            }
+            
+            // --- Event Listeners ---
+
+            // Handle form submission to add a new item
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const itemName = input.value.trim();
+                if (itemName) {
+                    input.disabled = true; // Prevent multiple submissions
+                    await addItem(itemName);
+                    input.value = '';
+                    input.disabled = false;
+                    input.focus();
+                }
+            });
+
+            // Handle clicks on delete buttons
+            list.addEventListener('click', async (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const button = e.target.closest('.delete-btn');
+                    const id = button.dataset.id;
+                    button.disabled = true; // Prevent multiple clicks
+                    await deleteItem(id);
+                }
+            });
+
+            // --- Initial Load ---
+            getItems();
+        });
+
+        // Simple fade-in animation for list items
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
