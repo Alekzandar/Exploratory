@@ -45,16 +45,16 @@ def get_items():
     items = GroceryItem.query.all()
     return jsonify([{"id": item.id, "name": item.name} for item in items])
 
-@app.route('/api/items', methods=['POST'])
+@app.route("/api/items", methods=["POST"])
 def add_item():
     data = request.get_json()
-    if not data or 'name' not in data or not data['name'].strip():
-        return jsonify({"error": "Item name is required"}), 400
-
-    item = GroceryItem(id=str(os.urandom(8).hex()), name=data['name'].strip())
-    db.session.add(item)
+    new_item = GroceryItem(
+        id=str(uuid.uuid4()),  # ✅ Generate valid UUID here
+        name=data["name"]
+    )
+    db.session.add(new_item)
     db.session.commit()
-    return jsonify({"id": item.id, "name": item.name}), 201
+    return jsonify({"message": "Item added"}), 201
 
 @app.route('/api/items/<item_id>', methods=['DELETE'])
 def delete_item(item_id):
