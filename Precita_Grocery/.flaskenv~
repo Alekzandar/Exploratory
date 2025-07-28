@@ -1,2 +1,0 @@
-FLASK_APP=api/index.py
-DATABASE_URL=postgresql://your-supabase-connection-url
