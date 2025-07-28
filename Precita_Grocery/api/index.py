@@ -39,9 +39,6 @@ class GroceryItem(db.Model):
     id = db.Column(db.String(36), primary_key=True) # UUID-style string
     name = db.Column(db.String(100), nullable=False)
 
-# Validate table exists
-with app.app_context():
-    db.create_all()
 
 @app.route('/api/items', methods=['GET'])
 def get_items():
