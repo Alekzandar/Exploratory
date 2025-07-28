@@ -5,6 +5,12 @@ import uuid, os
 
 # Initialize the Flask app
 app = Flask(__name__)
+
+
+# Override instance path to a writable directory on Vercel
+app.instance_path = '/tmp/instance'
+os.makedirs(app.instance_path, exist_ok=True)
+
 # Enable CORS for all routes, allowing the frontend to communicate with this API
 CORS(app)
 
@@ -17,10 +23,14 @@ CORS(app)
     #str(uuid.uuid4()): {"name": "Bread"},
     #str(uuid.uuid4()): {"name": "Cheese"},
     #}
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-    'DATABASE_URL', 'sqlite:///local.db').replace("postgres://", "postgresql://")  # Using SQLite fallback for local
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db_url = os.environ.get('DATABASE_URL')
+if not db_url:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
 # Initialize the DB
 db = SQLAlchemy(app)
 
